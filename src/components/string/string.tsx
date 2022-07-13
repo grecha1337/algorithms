@@ -44,7 +44,6 @@ export const StringComponent: React.FC = () => {
         result[i][j] = { character: array[j], state: ElementStates.Changing }
       }
 
-
       if (j === end && state === "Modified") {
         result[i][j] = { character: array[j], state: ElementStates.Modified }
         start++
