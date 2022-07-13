@@ -28,34 +28,43 @@ export const StringComponent: React.FC = () => {
     }
 
     const array = value.split('');
-    for (let i = 1, j = 0, start = 0, end = array.length - 1; start <= end; j++) {
+    let i = 1;
+    let j = 0;
+    let start = 0;
+    let end = array.length - 1
+    let state: "Changing" | "Modified" = "Changing"
+    while (start <= end) {
+
       if (!result[i]) {
         result[i] = [...result[i - 1]]
       }
-      if (j === end && i % 2 === 1) {
+      if (j === end && state === "Changing") {
         result[i][j] = { character: array[j], state: ElementStates.Changing }
-      } else if (j === start && i % 2 === 1) {
+      } else if (j === start && state === "Changing") {
         result[i][j] = { character: array[j], state: ElementStates.Changing }
       }
 
-
-      if (j === end && i % 2 === 0) {
+      if (j === end && state === "Modified") {
         result[i][j] = { character: array[j], state: ElementStates.Modified }
         start++
         end--;
-      } else if (j === start && i % 2 === 0) {
+      } else if (j === start && state === "Modified") {
         result[i][j] = { character: array[j], state: ElementStates.Modified }
       }
 
-      if (j === array.length - 1 && i % 2 === 1) {
+      if (j === array.length - 1 && state === "Changing") {
         swap(array, start, end)
-        j = -1;
+        j = 0;
         i++;
-
-      } else if (j === array.length - 1 && i % 2 === 0) {
-        j = -1;
+        state = "Modified"
+        continue;
+      } else if (j === array.length - 1 && state === "Modified") {
+        state = "Changing"
+        j = 0;
         i++;
+        continue;
       }
+      j++
     }
     return result
   }
