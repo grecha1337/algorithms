@@ -1,0 +1,17 @@
+.wrapperForm {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 120px;
+}
+ 
+
+.wrapperInput{
+  width: 377px;
+}
+ 
+.wrapperCircle {
+  display: flex;
+  justify-content: center;
+  gap: 0 16px;
+}
