@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import styles from "./string.module.css"
 import { Input } from "../ui/input/input";
 import { Button } from "../ui/button/button";

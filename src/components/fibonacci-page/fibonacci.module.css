@@ -10,8 +10,16 @@
   width: 377px;
 }
  
-.wrapperCircle {
+.content {
   display: flex;
   justify-content: center;
-  gap: 0 16px;
+  flex-flow: wrap;
+}
+
+.warpperCircle {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 48px 16px;
 }
