@@ -88,6 +88,52 @@ export const SortingPage: React.FC = () => {
     return res;
   };
 
+
+  const bubbleSort = (arr: number[], orderBy: OrderBy = OrderBy.ASC) => {
+    const { length } = arr;
+
+    const res: Array<Array<Item>> = [[]];
+    let tmp = []
+    for (let i = 0; i < length; i++) {
+      res[0][i] = { value: arr[i], state: ElementStates.Default };
+    }
+    for (let i = 0, level = 1; i < length; i++) {
+      if (!res[level]) {
+        res[level] = [...res[level - 1]];
+      }
+
+      tmp = [...res[level]];
+
+      for (let j = 0; j < length - i - 1; j++, level++) {
+        if (orderBy === OrderBy.ASC) {
+          if (arr[j] < arr[j + 1]) {
+            swap(arr, j, j + 1);
+            swap(tmp, j, j + 1);
+          }
+        } else {
+          if (arr[j] > arr[j + 1]) {
+            swap(arr, j, j + 1);
+            swap(tmp, j, j + 1);
+          }
+        }
+        res[level][j] = { value: arr[j], state: ElementStates.Changing };
+        res[level][j + 1] = { value: arr[j + 1], state: ElementStates.Changing };
+        res[level + 1] = [...tmp];
+
+        if (j + 1 === length - i - 1) {
+          if (i === length - 2) {
+            res[level + 1][j] = { value: arr[j], state: ElementStates.Modified };
+            res[level + 1][j + 1] = { value: arr[j + 1], state: ElementStates.Modified };
+          } else {
+            res[level + 1][j + 1] = { value: arr[j + 1], state: ElementStates.Modified };
+          }
+
+        }
+      }
+    }
+    return res;
+  };
+
   const handlerButton = (orderBy: OrderBy = OrderBy.ASC) => {
     if (!array) {
       return;
@@ -96,7 +142,7 @@ export const SortingPage: React.FC = () => {
     orderBy === OrderBy.ASC ? setOrderBy(OrderBy.ASC) : setOrderBy(OrderBy.DESC)
 
     setLoading(true)
-    const steps = selectionSort(array, orderBy);
+    const steps = bubbleSort(array, orderBy);
     console.log(steps)
     setAlgorithmSteps(steps)
     setCurrentAlgorithmStep(1)
@@ -111,7 +157,7 @@ export const SortingPage: React.FC = () => {
           }
           return nextStep;
         });
-      }, 100)
+      }, 500)
     }
   }
 
@@ -131,12 +177,26 @@ export const SortingPage: React.FC = () => {
       <div className={styles.wrapperContent}>
         <div className={styles.contolPanel}>
           <div className={styles.radioGroup}>
-            <RadioInput label="Выбор" name="sortAlgorithm" checked={active == 0} onChange={() => setActive(0)} />
-            <RadioInput label="Пузырек" name="sortAlgorithm" checked={active == 1} onChange={() => setActive(1)} />
+            <RadioInput label="Выбор"
+              name="sortAlgorithm"
+              checked={active == 0}
+              onChange={() => setActive(0)} disabled={loading} />
+            <RadioInput label="Пузырек"
+              name="sortAlgorithm"
+              checked={active == 1}
+              onChange={() => setActive(1)} disabled={loading} />
           </div>
           <div className={styles.buttonDirectionGroup}>
-            <Button text="По возрастанию" sorting={Direction.Ascending} isLoader={orderBy===OrderBy.ASC} disabled={loading} onClick={() => handlerButton(OrderBy.ASC)} />
-            <Button text="По убыванию" sorting={Direction.Descending} isLoader={orderBy===OrderBy.DESC} disabled={loading} onClick={() => handlerButton(OrderBy.DESC)} />
+            <Button text="По возрастанию"
+              sorting={Direction.Ascending}
+              isLoader={orderBy === OrderBy.ASC}
+              disabled={loading}
+              onClick={() => handlerButton(OrderBy.ASC)} />
+            <Button text="По убыванию"
+              sorting={Direction.Descending}
+              isLoader={orderBy === OrderBy.DESC}
+              disabled={loading}
+              onClick={() => handlerButton(OrderBy.DESC)} />
           </div>
           <Button text="Новый массив" onClick={handlerButtonGenArray} disabled={loading} />
         </div>
@@ -144,7 +204,9 @@ export const SortingPage: React.FC = () => {
           {algorithmSteps.length > 0 &&
             algorithmSteps[currentAlgorithmStep].map((items, index) => {
               return (
-                (<Column index={items.value} extraClass={items.state == ElementStates.Modified ? styles.sorted : items.state == ElementStates.Changing ? styles.current : ''} key={index} />)
+                (<Column index={items.value}
+                  extraClass={items.state == ElementStates.Modified ? styles.sorted : items.state == ElementStates.Changing ? styles.current : ''}
+                  key={index} />)
               );
             })
           }
