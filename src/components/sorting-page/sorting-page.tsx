@@ -18,9 +18,14 @@ enum OrderBy {
   DESC
 }
 
+enum TypeSort {
+  SELECTION,
+  BUBBLE
+}
+
 
 export const SortingPage: React.FC = () => {
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState(TypeSort.SELECTION);
   const [currentAlgorithmStep, setCurrentAlgorithmStep] = useState(0)
   const [algorithmSteps, setAlgorithmSteps] = useState<Item[][]>([]);
   const [loading, setLoading] = useState(false);
@@ -106,12 +111,12 @@ export const SortingPage: React.FC = () => {
 
       for (let j = 0; j < length - i - 1; j++, level++) {
         if (orderBy === OrderBy.ASC) {
-          if (arr[j] < arr[j + 1]) {
+          if (arr[j] > arr[j + 1]) {
             swap(arr, j, j + 1);
             swap(tmp, j, j + 1);
           }
         } else {
-          if (arr[j] > arr[j + 1]) {
+          if (arr[j] < arr[j + 1]) {
             swap(arr, j, j + 1);
             swap(tmp, j, j + 1);
           }
@@ -142,7 +147,7 @@ export const SortingPage: React.FC = () => {
     orderBy === OrderBy.ASC ? setOrderBy(OrderBy.ASC) : setOrderBy(OrderBy.DESC)
 
     setLoading(true)
-    const steps = bubbleSort(array, orderBy);
+    const steps = active === TypeSort.SELECTION ? selectionSort(array, orderBy) : bubbleSort(array, orderBy);
     console.log(steps)
     setAlgorithmSteps(steps)
     setCurrentAlgorithmStep(1)
@@ -180,11 +185,11 @@ export const SortingPage: React.FC = () => {
             <RadioInput label="Выбор"
               name="sortAlgorithm"
               checked={active == 0}
-              onChange={() => setActive(0)} disabled={loading} />
+              onChange={() => setActive(TypeSort.SELECTION)} disabled={loading} />
             <RadioInput label="Пузырек"
               name="sortAlgorithm"
               checked={active == 1}
-              onChange={() => setActive(1)} disabled={loading} />
+              onChange={() => setActive(TypeSort.BUBBLE)} disabled={loading} />
           </div>
           <div className={styles.buttonDirectionGroup}>
             <Button text="По возрастанию"
