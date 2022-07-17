@@ -1,16 +1,24 @@
 import React, { useState } from "react";
 import { Direction } from "../../types/direction";
+import { ElementStates } from "../../types/element-states";
 import { Button } from "../ui/button/button";
 import { Column } from "../ui/column/column";
 import { RadioInput } from "../ui/radio-input/radio-input";
 import { SolutionLayout } from "../ui/solution-layout/solution-layout";
 import styles from "./sorting-page.module.css"
 
+
+interface Item {
+  value: number;
+  state: ElementStates;
+}
+
+
 export const SortingPage: React.FC = () => {
   const [active, setActive] = useState(0);
   const [array, setArray] = useState<number[]>([])
   const [currentAlgorithmStep, setCurrentAlgorithmStep] = useState(0)
-  const [algorithmSteps, setAlgorithmSteps] = useState<any>([]);
+  const [algorithmSteps, setAlgorithmSteps] = useState<Array<Array<Item>>>([]);
   const [loading, setLoading] = useState(false);
 
   const generationArray = (minValue: number, maxValue: number, minLen: number, maxLenv: number): number[] => {
@@ -22,7 +30,7 @@ export const SortingPage: React.FC = () => {
     return res;
   }
 
-  const swap = (arr: number[], firstIndex: number, secondIndex: number): void => {
+  const swap = (arr: any[], firstIndex: number, secondIndex: number): void => {
     const temp = arr[firstIndex];
     arr[firstIndex] = arr[secondIndex];
     arr[secondIndex] = temp;
@@ -30,44 +38,44 @@ export const SortingPage: React.FC = () => {
 
   const selectionSort = (arr: number[], orderBy: "asc" | "desc" = "asc") => {
     const { length } = arr;
-  
-    const res = [[]];
-    let tmp = [];
-    let tmp1 = [];
+
+    const res: Array<Array<Item>> = [[]];
+    let tmp: Array<Item> = [];
+    let tmp1: Array<Item> = [];
     for (let i = 0; i < length; i++) {
-      res[0][i] = { value: arr[i], state: "деф" };
+      res[0][i] = { value: arr[i], state: ElementStates.Default };
     }
-  
-    for (let i = 0, level = 1, it = 0; i < length; i++) {
+
+    for (let i = 0, level = 1; i < length; i++) {
       let index = i;
       if (!res[level]) {
         res[level] = [...res[level - 1]];
       }
 
-      tmp1[0] = [...res[level]];
-      res[level][i] = { value: arr[i], state: "выбор" };
-      tmp[0] = [...res[level]];
-     
+      tmp1 = [...res[level]];
+      res[level][i] = { value: arr[i], state: ElementStates.Changing };
+      tmp = [...res[level]];
+
       for (let j = i + 1; j < length; j++, level++) {
-        res[level][j] = { value: arr[j], state: "выбор" };
-  
+        res[level][j] = { value: arr[j], state: ElementStates.Changing };
+
         if (arr[index] > arr[j]) {
           index = j;
         }
-        res[level + 1] =  [...tmp[0]];
+        res[level + 1] = [...tmp];
       }
-  
+
       swap(arr, i, index);
-      swap(tmp1[0], i, index);
-      tmp1[0][i] = { value: arr[i], state: "готово" };
-      res[level] = [...tmp1[0]]
+      swap(tmp1, i, index);
+      tmp1[i] = { value: arr[i], state: ElementStates.Modified };
+      res[level] = [...tmp1]
     }
     return res;
   };
 
   const handlerButton = () => {
     setLoading(true)
-    const steps = selectionSort(generationArray(0,100,3,17));
+    const steps = selectionSort(generationArray(0, 100, 3, 17));
     console.log(steps)
     setAlgorithmSteps(steps)
     setCurrentAlgorithmStep(0)
@@ -110,7 +118,7 @@ export const SortingPage: React.FC = () => {
           {algorithmSteps.length > 0 &&
             algorithmSteps[currentAlgorithmStep].map((items, index) => {
               return (
-                (<Column index={items.value} extraClass={items.state == "готово" ? styles.sorted : items.state == "выбор" ? styles.current : ''} key={index} />)
+                (<Column index={items.value} extraClass={items.state == ElementStates.Modified ? styles.sorted : items.state == ElementStates.Changing ? styles.current : ''} key={index} />)
               );
             })
           }
