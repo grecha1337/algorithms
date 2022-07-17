@@ -13,13 +13,19 @@ interface Item {
   state: ElementStates;
 }
 
+enum OrderBy {
+  ASC,
+  DESC
+}
+
 
 export const SortingPage: React.FC = () => {
   const [active, setActive] = useState(0);
-  const [array, setArray] = useState<number[]>([])
   const [currentAlgorithmStep, setCurrentAlgorithmStep] = useState(0)
-  const [algorithmSteps, setAlgorithmSteps] = useState<Array<Array<Item>>>([]);
+  const [algorithmSteps, setAlgorithmSteps] = useState<Item[][]>([]);
   const [loading, setLoading] = useState(false);
+  const [array, setArray] = useState<number[]>();
+  const [orderBy, setOrderBy] = useState<OrderBy | null>(null);
 
   const generationArray = (minValue: number, maxValue: number, minLen: number, maxLenv: number): number[] => {
     const arrLength = Math.floor(Math.random() * (maxLenv - minLen + 1)) + minLen;
@@ -36,9 +42,12 @@ export const SortingPage: React.FC = () => {
     arr[secondIndex] = temp;
   };
 
-  const selectionSort = (arr: number[], orderBy: "asc" | "desc" = "asc") => {
-    const { length } = arr;
+  const selectionSort = (arr: number[] | null, orderBy: OrderBy): Item[][] => {
+    if (!arr) {
+      return [[]]
+    }
 
+    const { length } = arr;
     const res: Array<Array<Item>> = [[]];
     let tmp: Array<Item> = [];
     let tmp1: Array<Item> = [];
@@ -59,8 +68,14 @@ export const SortingPage: React.FC = () => {
       for (let j = i + 1; j < length; j++, level++) {
         res[level][j] = { value: arr[j], state: ElementStates.Changing };
 
-        if (arr[index] > arr[j]) {
-          index = j;
+        if (orderBy === OrderBy.ASC) {
+          if (arr[index] > arr[j]) {
+            index = j;
+          }
+        } else {
+          if (arr[index] < arr[j]) {
+            index = j;
+          }
         }
         res[level + 1] = [...tmp];
       }
@@ -73,26 +88,43 @@ export const SortingPage: React.FC = () => {
     return res;
   };
 
-  const handlerButton = () => {
+  const handlerButton = (orderBy: OrderBy = OrderBy.ASC) => {
+    if (!array) {
+      return;
+    }
+
+    orderBy === OrderBy.ASC ? setOrderBy(OrderBy.ASC) : setOrderBy(OrderBy.DESC)
+
     setLoading(true)
-    const steps = selectionSort(generationArray(0, 100, 3, 17));
+    const steps = selectionSort(array, orderBy);
     console.log(steps)
     setAlgorithmSteps(steps)
-    setCurrentAlgorithmStep(0)
+    setCurrentAlgorithmStep(1)
     if (steps) {
       const interval = setInterval(() => {
         setCurrentAlgorithmStep((currentStep) => {
           const nextStep = currentStep + 1;
           if (nextStep >= steps.length - 1 && interval) {
             clearInterval(interval);
+            setOrderBy(null)
             setLoading(false)
           }
           return nextStep;
         });
-      }, 1000)
+      }, 100)
     }
   }
 
+  const handlerButtonGenArray = () => {
+    const array = generationArray(0, 100, 3, 17)
+    setCurrentAlgorithmStep(0)
+    const res: Item[][] = [[]]
+    for (let i = 0; i < array.length; i++) {
+      res[0][i] = { value: array[i], state: ElementStates.Default };
+    }
+    setArray(array);
+    setAlgorithmSteps(res)
+  }
 
   return (
     <SolutionLayout title="Сортировка массива">
@@ -103,18 +135,12 @@ export const SortingPage: React.FC = () => {
             <RadioInput label="Пузырек" name="sortAlgorithm" checked={active == 1} onChange={() => setActive(1)} />
           </div>
           <div className={styles.buttonDirectionGroup}>
-            <Button text="По возрастанию" sorting={Direction.Ascending} />
-            <Button text="По убыванию" sorting={Direction.Descending} />
+            <Button text="По возрастанию" sorting={Direction.Ascending} isLoader={orderBy===OrderBy.ASC} disabled={loading} onClick={() => handlerButton(OrderBy.ASC)} />
+            <Button text="По убыванию" sorting={Direction.Descending} isLoader={orderBy===OrderBy.DESC} disabled={loading} onClick={() => handlerButton(OrderBy.DESC)} />
           </div>
-          <Button text="Новый массив" onClick={handlerButton} />
+          <Button text="Новый массив" onClick={handlerButtonGenArray} disabled={loading} />
         </div>
         <div className={styles.contentArray}>
-          {array.length > 0 &&
-            array.map(element => {
-              return (<Column index={element} extraClass={styles.current} />)
-            })
-          }
-
           {algorithmSteps.length > 0 &&
             algorithmSteps[currentAlgorithmStep].map((items, index) => {
               return (
