@@ -1,0 +1,39 @@
+.contolPanel {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+}
+
+.radioGroup {
+  display: flex;
+  gap: 0 46px;
+}
+
+.buttonDirectionGroup {
+  display: flex;
+  gap: 0 12px;
+}
+
+.contentArray {
+  display: flex;
+  gap: 0 12px;
+  justify-content: center;
+  align-items: flex-end;
+  height: 340px;
+}
+
+.wrapperContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.current>div {
+  background-color: #D252E1;
+}
+
+.sorted>div {
+  background-color: #7FE051;
+}
