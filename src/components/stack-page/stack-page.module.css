@@ -1,0 +1,31 @@
+.controlPanel {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 120px;
+}
+
+.input {
+  margin-right: 12px;
+  max-width: 377px;
+}
+
+.buttonAdd {
+  margin-right: 12px;
+}
+
+.buttonDelete {
+  margin-right: 80px;
+}
+
+.wrapperContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.contentStack {
+  display: flex;
+  gap: 0 16px;
+  justify-content: center;
+}
