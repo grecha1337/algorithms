@@ -1,5 +1,5 @@
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useState } from "react";
 import { Queue } from "../../data-structures/queue";
 import { ElementStates } from "../../types/element-states";
 import { Button } from "../ui/button/button";
@@ -11,8 +11,8 @@ import styles from "./queue-page.module.css"
 export const QueuePage: React.FC = () => {
   const [value, setValue] = useState('');
   const [loading, setLoading] = useState(false);
-  const [queue,] = useState(new Queue(6))
-  const [array, setArray] = useState([...queue.getElements()])
+  const [queue,] = useState(new Queue<string>(6))
+  const [array, setArray] = useState<(string | null)[]>([...queue.getElements()])
   const [animationHead, setAnimationHead] = useState(false)
   const [animationTail, setAnimationTail] = useState(false)
   const handlerInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,7 +68,8 @@ export const QueuePage: React.FC = () => {
                 index={index}
                 key={index}
                 letter={el ? el : ""}
-                head={(!queue.isEmpty() && queue.getHead() === index) || (queue.isEmpty() && queue.getHead() - 1 === index && queue.getHead() === array.length) ? "head" : ""}
+                head={(!queue.isEmpty() && queue.getHead() === index)
+                  || (queue.isEmpty() && queue.getHead() - 1 === index && queue.getHead() === array.length) ? "head" : ""}
                 tail={!queue.isEmpty() && queue.getTail() - 1 === index ? "tail" : ""}
                 state={!queue.isEmpty()
                   && (animationHead && queue.getHead() === index ||

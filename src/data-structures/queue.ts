@@ -52,6 +52,5 @@ export class Queue<T> implements IQueue<T> {
 
   getElements = () => this.container;
 
-
   getSize = () => this.size;
 }
