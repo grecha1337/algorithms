@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Node, Stack } from "../../data-structures/stack";
+import { Node } from "../../data-structures/node";
+import { Stack } from "../../data-structures/stack";
 import { ElementStates } from "../../types/element-states";
 import { Button } from "../ui/button/button";
 import { Circle } from "../ui/circle/circle";
@@ -12,7 +13,7 @@ export const StackPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [stack,] = useState(new Stack<number | null>(new Node(null)))
   const [array, setArray] = useState<number[]>([])
-  const [newElement, setNewElement] = useState(false)
+  const [animation, setAnimation] = useState(false)
   const handlerInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value)
   }
@@ -25,12 +26,10 @@ export const StackPage: React.FC = () => {
     setValue('')
     setArray(stackToArray(stack))
     setLoading(true)
-    setNewElement(true)
-    console.log(stack)
+    setAnimation(true)
     const interval = setInterval(() => {
-
       setLoading(false)
-      setNewElement(false)
+      setAnimation(false)
       clearInterval(interval);
     }, 500)
 
@@ -49,9 +48,6 @@ export const StackPage: React.FC = () => {
 
       i++;
     }
-    console.log('node', node)
-    console.log('stack', stack)
-    console.log('rest', res)
     return res.reverse();
 
   }
@@ -59,14 +55,14 @@ export const StackPage: React.FC = () => {
   const handlerDelete = () => {
 
     setLoading(true)
-    setNewElement(true)
+    setAnimation(true)
     setArray(stackToArray<number>(stack))
     stack.pop()
     const interval = setInterval(() => {
       clearInterval(interval);
       setArray(stackToArray(stack))
       setLoading(false)
-      setNewElement(false)
+      setAnimation(false)
     }, 500)
   }
 
@@ -88,12 +84,11 @@ export const StackPage: React.FC = () => {
         </div>
         <div className={styles.contentStack}>
           {
-
             array.length > 0 &&
             array.map((element, index) => {
               return (<Circle letter={element.toString()}
                 key={index}
-                state={index === array.length - 1 && newElement ? ElementStates.Modified : ElementStates.Default}
+                state={index === array.length - 1 && animation ? ElementStates.Modified : ElementStates.Default}
                 head={index === array.length - 1 ? "top" : ""}
                 index={index}
               />)

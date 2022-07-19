@@ -1,18 +1,10 @@
+import { Node } from "./node";
+
 interface IStack<T> {
   push: (item: T) => void;
   pop: () => void;
   peak: () => T | null;
 }
-
-export class Node<T> {
-  value: T;
-  next: Node<T> | null;
-  constructor(value: T, next?: Node<T> | null) {
-    this.value = value;
-    this.next = next === undefined ? null : next;
-  }
-}
-
 export class Stack<T> implements IStack<T> {
   private top: Node<T> | null = null;
   private size: number = 0;
