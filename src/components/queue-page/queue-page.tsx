@@ -47,10 +47,36 @@ export const QueuePage: React.FC = () => {
   }
 
   const handlerClear = () => {
-
+    queue.clear()
+    setArray([...queue.getElements()])
   }
-  console.log(queue.getHead())
-  console.log(array.length)
+
+  const isHead = (indexElement: number): boolean => {
+    if ((!queue.isEmpty() && queue.getHead() === indexElement) ||
+      (queue.isEmpty() && queue.getHead() - 1 === indexElement && queue.getHead() === array.length)) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  const isTail = (indexElement: number): boolean => {
+    if (!queue.isEmpty() && queue.getTail() - 1 === indexElement) {
+      return true;
+    } else {
+      return false
+    }
+  }
+
+  const state = (indexElement: number): ElementStates => {
+    if (!queue.isEmpty() && (animationHead && queue.getHead() === indexElement ||
+      animationTail && queue.getTail() - 1 === indexElement)) {
+      return ElementStates.Changing
+    } else {
+      return ElementStates.Default
+    }
+  }
+
   return (
     <SolutionLayout title="Очередь">
       <div className={styles.wrapperContent}>
@@ -68,13 +94,9 @@ export const QueuePage: React.FC = () => {
                 index={index}
                 key={index}
                 letter={el ? el : ""}
-                head={(!queue.isEmpty() && queue.getHead() === index)
-                  || (queue.isEmpty() && queue.getHead() - 1 === index && queue.getHead() === array.length) ? "head" : ""}
-                tail={!queue.isEmpty() && queue.getTail() - 1 === index ? "tail" : ""}
-                state={!queue.isEmpty()
-                  && (animationHead && queue.getHead() === index ||
-                    animationTail && queue.getTail() - 1 === index)
-                  ? ElementStates.Changing : ElementStates.Default}
+                head={isHead(index) ? "head" : ""}
+                tail={isTail(index) ? "tail" : ""}
+                state={state(index)}
               />)
             })
           }
