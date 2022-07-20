@@ -139,6 +139,7 @@ export class LinkedList<T> implements ILinkedList<T> {
       this.head = this.head.next;
     }
     this.size--;
+    console.log(this.head)
   }
 
   deleteTail() {

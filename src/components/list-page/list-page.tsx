@@ -1,3 +1,4 @@
+import { type } from "os";
 import React, { useRef, useState } from "react";
 import { LinkedList } from "../../data-structures/linled-list";
 import { ElementStates } from "../../types/element-states";
@@ -30,9 +31,11 @@ export const ListPage: React.FC = () => {
   const [isAnimationHead, setIsAnimationHead] = useState()
   const [isAnimationTail, setisAnimationTail] = useState()
   const [isNewElement, setIsNewElement] = useState()
-  const [isDeleteElement, setDeleteElement] = useState()
+  const [isDeleteElement, setIsDeleteElement] = useState()
   const [indexHead, setIndexHead] = useState(0)
   const [indexTail, setIndexTail] = useState(0)
+  const [lastElementArray, setLastElementArray] = useState(null)
+  const [firstElementArray, setFirstElementArray] = useState(null)
   const [typeOperation, setTypeOpeation] = useState<TypeOperation>(0)
 
   const handlerInputValue = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,18 +44,16 @@ export const ListPage: React.FC = () => {
   const handlerInputInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputIndex(e.target.value)
   }
-
-
-
+  
   const handlerAddHead = async () => {
     setIsAnimationHead(true)
     setTypeOpeation(TypeOperation.ADD_HEAD)
-    await sleep(500)
+    await sleep(600)
     list.appendHead(inputValue)
     setIsNewElement(true)
     setIsAnimationHead(false)
     setArray(list.toArray())
-    await sleep(500)
+    await sleep(600)
     setIsNewElement(false)
     setInputValue('')
     setTypeOpeation(null)
@@ -62,12 +63,12 @@ export const ListPage: React.FC = () => {
   const handlerAddTail = async () => {
     setisAnimationTail(true)
     setTypeOpeation(TypeOperation.ADD_TAIL)
-    await sleep(500)
+    await sleep(600)
     list.appendTail(inputValue)
     setisAnimationTail(false)
     setIsNewElement(true)
     setArray(list.toArray())
-    await sleep(500)
+    await sleep(600)
     setIsNewElement(false)
     setInputValue('')
     setTypeOpeation(null)
@@ -76,28 +77,67 @@ export const ListPage: React.FC = () => {
   const handlerDeleteHead = async () => {
     setIsAnimationHead(true)
     setTypeOpeation(TypeOperation.DELETE_HEAD)
-    await sleep(500)
+    const tmp = [...array]
+    setFirstElementArray(tmp[0])
+    tmp[0] = '';
+    setArray(tmp)
+    await sleep(1000)
     list.deleteHead()
-    setIsAnimationHead(false)
-    setIsNewElement(true)
     setArray(list.toArray())
-    await sleep(500)
-    setIsNewElement(false)
+    setIsAnimationHead(false)
+    setIsDeleteElement(true)
+    await sleep(1000)
+    setIsDeleteElement(false)
     setInputValue('')
     setTypeOpeation(null)
   }
 
+  const handlerDeleteTail = async () => {
+    setisAnimationTail(true)
+    setTypeOpeation(TypeOperation.DELETE_TAIL)
+    const tmp = [...array]
+    console.log(tmp[tmp.length - 1])
+    setLastElementArray(tmp[tmp.length - 1])
+    tmp[tmp.length - 1] = '';
+    setArray(tmp)
+    await sleep(1000)
+    list.deleteTail()
+    setArray(list.toArray())
+    setisAnimationTail(false)
+    setIsDeleteElement(true)
+    await sleep(1000)
+    setIsDeleteElement(false)
+    setInputValue('')
+    setTypeOpeation(null)
+    console.log(lastElementArray)
+  }
 
-  const setCircle = (index) => {
-    if (index == 0 && isAnimationHead) {
+
+
+
+  const setCircleHead = (index) => {
+    if (index === 0 && isAnimationHead && typeOperation === TypeOperation.ADD_HEAD) {
       return <Circle letter={inputValue} isSmall={true} state={ElementStates.Changing} />
-    } else if (index == array.length - 1 && isAnimationTail) {
+    } else if (index == array.length - 1 && isAnimationTail && typeOperation === TypeOperation.ADD_TAIL) {
       return <Circle letter={inputValue} isSmall={true} state={ElementStates.Changing} />
+    } else if (index === 0) {
+      return 'head'
+    }
+  }
+
+  const setCircleTail = (index) => {
+    console.log(lastElementArray)
+    if (index === 0 && isAnimationHead && typeOperation === TypeOperation.DELETE_HEAD) {
+      return <Circle letter={firstElementArray} isSmall={true} state={ElementStates.Changing} />
+    } else if (index == array.length - 1 && isAnimationTail && typeOperation === TypeOperation.DELETE_TAIL) {
+      console.log('lastElementArray', lastElementArray)
+      return <Circle letter={lastElementArray} isSmall={true} state={ElementStates.Changing} />
+    } else if (index === array.length - 1) {
+      return 'tail'
     }
   }
 
   const setState = (index) => {
-    console.log(isAnimationHead && isNewElement && index === 0)
     if (typeOperation === TypeOperation.ADD_HEAD && isNewElement && index === 0) {
       return ElementStates.Modified
     } else if (typeOperation === TypeOperation.ADD_TAIL && isNewElement && index === array.length - 1) {
@@ -109,22 +149,52 @@ export const ListPage: React.FC = () => {
     <SolutionLayout title="Связный список">
       <div className={styles.wrapperContent}>
         <div className={styles.controlPanel}>
-          <Input maxLength={4} isLimitText={true} value={inputValue} extraClass={styles.input} onChange={handlerInputValue} />
-          <Button text="Добавить в head" disabled={loading} extraClass={styles.buttonAdd} onClick={handlerAddHead} />
-          <Button text="Добавить в tail" disabled={loading} extraClass={styles.buttonDelete} onClick={handlerAddTail} />
-          <Button text="Удалить из head" disabled={loading} extraClass={styles.buttonDelete} />
-          <Button text="Удалить из tail" disabled={loading} extraClass={styles.buttonDelete} />
+          <Input maxLength={4}
+            isLimitText={true}
+            value={inputValue}
+            extraClass={styles.input}
+            onChange={handlerInputValue} />
+          <Button text="Добавить в head"
+            disabled={loading}
+            extraClass={styles.buttonAdd}
+            onClick={handlerAddHead} />
+          <Button text="Добавить в tail"
+            disabled={loading}
+            extraClass={styles.buttonDelete}
+            onClick={handlerAddTail} />
+          <Button text="Удалить из head"
+            disabled={loading}
+            extraClass={styles.buttonDelete}
+            onClick={handlerDeleteHead} />
+          <Button text="Удалить из tail"
+            disabled={loading}
+            extraClass={styles.buttonDelete}
+            onClick={handlerDeleteTail} />
+          <Input maxLength={4}
+            max={19}
+            type="number"
+            value={inputValue}
+            extraClass={styles.input}
+            onChange={handlerInputInput} />
+          <Button text="Добавить по индексу"
+            disabled={loading}
+            extraClass={styles.addByIndex}
+          />
+          <Button text="Удалить по индексу"
+            disabled={loading}
+            extraClass={styles.deleteByIndex}
+          />
 
         </div>
         <div className={styles.contentList}>
           {array &&
             array.map((el, index) => {
               return (<Circle
-                index={index}
+
                 key={index}
                 letter={el ? el : ""}
-                head={setCircle(index)}
-                //tail={isTail(index) ? "tail" : ""}
+                head={setCircleHead(index)}
+                tail={setCircleTail(index)}
                 state={setState(index)}
               />
 
