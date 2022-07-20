@@ -42,12 +42,11 @@ export const SortingPage: React.FC = () => {
   }
 
   useEffect(() => {
-    if (algorithmSteps.length > 0 && currentAlgorithmStep >= 1) {
+    if (algorithmSteps.length > 0 && currentAlgorithmStep >= 1 && currentAlgorithmStep < algorithmSteps.length - 1) {
       interval.current = setInterval(() => {
         setCurrentAlgorithmStep((currentStep) => {
           const nextStep = currentStep + 1;
-          if (nextStep >= algorithmSteps.length - 1 && interval.current) {
-            clearInterval(interval.current);
+          if (nextStep >= algorithmSteps.length - 1) {
             setOrderBy(null)
             setLoading(false)
           }
@@ -61,7 +60,7 @@ export const SortingPage: React.FC = () => {
         return clearInterval(interval.current);
       }
     };
-  }, [interval, algorithmSteps, currentAlgorithmStep])
+  }, [algorithmSteps, currentAlgorithmStep, interval])
 
   const swap = (arr: any[], firstIndex: number, secondIndex: number): void => {
     const temp = arr[firstIndex];

@@ -20,7 +20,7 @@ export const StringComponent: React.FC = () => {
   const interval = useRef<null | NodeJS.Timeout>(null);
 
   useEffect(() => {
-
+    console.log('asd')
     if (algorithmSteps.length > 0) {
       interval.current = setInterval(() => {
         setCurrentAlgorithmStep((currentStep) => {
@@ -104,7 +104,7 @@ export const StringComponent: React.FC = () => {
   const handlerInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value)
   }
-  
+
   return (
     <SolutionLayout title="Строка">
       <div className={styles.wrapperForm}>

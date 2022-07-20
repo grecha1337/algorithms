@@ -1,5 +1,4 @@
-import { type } from "os";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { LinkedList } from "../../data-structures/linled-list";
 import { ElementStates } from "../../types/element-states";
 import { Button } from "../ui/button/button";
@@ -18,6 +17,9 @@ enum TypeOperation {
   ADD_TAIL,
   DELETE_HEAD,
   DELETE_TAIL,
+  ADD_BY_INDEX_SEARCH,
+  ADD_BY_INDEX_INSERT,
+  DELETE_BY_INDEX,
 }
 
 export const ListPage: React.FC = () => {
@@ -25,18 +27,19 @@ export const ListPage: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [inputIndex, setInputIndex] = useState('');
   const [loading, setLoading] = useState(false);
-  const interval = useRef<null | NodeJS.Timeout>(null);
+  const interval = React.useRef<null | NodeJS.Timeout>(null);
   const [array, setArray] = useState();
   const [list, setList] = useState(new LinkedList());
   const [isAnimationHead, setIsAnimationHead] = useState()
-  const [isAnimationTail, setisAnimationTail] = useState()
+  const [isAnimationTail, setIsAnimationTail] = useState()
+  const [isAnimationByIndex, setIsAnimationByIndex] = useState()
   const [isNewElement, setIsNewElement] = useState()
   const [isDeleteElement, setIsDeleteElement] = useState()
-  const [indexHead, setIndexHead] = useState(0)
+  const [currentIndex, setCurrentIndex] = useState()
   const [indexTail, setIndexTail] = useState(0)
   const [lastElementArray, setLastElementArray] = useState(null)
   const [firstElementArray, setFirstElementArray] = useState(null)
-  const [typeOperation, setTypeOpeation] = useState<TypeOperation>(0)
+  const [typeOperation, setTypeOperation] = useState<TypeOperation>(0)
 
   const handlerInputValue = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value)
@@ -44,10 +47,48 @@ export const ListPage: React.FC = () => {
   const handlerInputInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputIndex(e.target.value)
   }
-  
+
+  useEffect(() => {
+    for (let i = 0; i < 5; i++) {
+      list.appendHead(Math.floor(Math.random() * (100 - 1) + 1))
+    }
+    setArray(list.toArray())
+  }, [])
+
+  useEffect(() => {
+    if (TypeOperation.ADD_BY_INDEX_SEARCH === typeOperation) {
+      interval.current = setInterval(() => {
+
+        console.log('currentIndex', currentIndex)
+        if (currentIndex === Number(inputIndex) - 1) {
+          console.log('asdsad')
+          setIsNewElement(true)
+          setTypeOperation(TypeOperation.ADD_BY_INDEX_INSERT)
+          setArray(list.toArray())
+        }
+        setCurrentIndex(prev => prev + 1)
+      }, 500)
+    }
+    return () => {
+      if (interval.current !== null) {
+        return clearInterval(interval.current);
+      }
+    };
+  }, [interval, typeOperation, currentIndex, inputIndex])
+
+  useEffect(() => {
+    if (TypeOperation.ADD_BY_INDEX_INSERT === typeOperation && isNewElement) {
+      setTimeout(() => {
+        setIsNewElement(false)
+        setTypeOperation(null)
+      }, 1000)
+    }
+
+  }, [typeOperation, isNewElement])
+
   const handlerAddHead = async () => {
     setIsAnimationHead(true)
-    setTypeOpeation(TypeOperation.ADD_HEAD)
+    setTypeOperation(TypeOperation.ADD_HEAD)
     await sleep(600)
     list.appendHead(inputValue)
     setIsNewElement(true)
@@ -56,27 +97,27 @@ export const ListPage: React.FC = () => {
     await sleep(600)
     setIsNewElement(false)
     setInputValue('')
-    setTypeOpeation(null)
+    setTypeOperation(null)
   }
 
 
   const handlerAddTail = async () => {
-    setisAnimationTail(true)
-    setTypeOpeation(TypeOperation.ADD_TAIL)
+    setIsAnimationTail(true)
+    setTypeOperation(TypeOperation.ADD_TAIL)
     await sleep(600)
     list.appendTail(inputValue)
-    setisAnimationTail(false)
+    setIsAnimationTail(false)
     setIsNewElement(true)
     setArray(list.toArray())
     await sleep(600)
     setIsNewElement(false)
     setInputValue('')
-    setTypeOpeation(null)
+    setTypeOperation(null)
   }
 
   const handlerDeleteHead = async () => {
     setIsAnimationHead(true)
-    setTypeOpeation(TypeOperation.DELETE_HEAD)
+    setTypeOperation(TypeOperation.DELETE_HEAD)
     const tmp = [...array]
     setFirstElementArray(tmp[0])
     tmp[0] = '';
@@ -89,27 +130,33 @@ export const ListPage: React.FC = () => {
     await sleep(1000)
     setIsDeleteElement(false)
     setInputValue('')
-    setTypeOpeation(null)
+    setTypeOperation(null)
   }
 
   const handlerDeleteTail = async () => {
-    setisAnimationTail(true)
-    setTypeOpeation(TypeOperation.DELETE_TAIL)
+    setIsAnimationTail(true)
+    setTypeOperation(TypeOperation.DELETE_TAIL)
     const tmp = [...array]
-    console.log(tmp[tmp.length - 1])
     setLastElementArray(tmp[tmp.length - 1])
     tmp[tmp.length - 1] = '';
     setArray(tmp)
     await sleep(1000)
     list.deleteTail()
     setArray(list.toArray())
-    setisAnimationTail(false)
+    setIsAnimationTail(false)
     setIsDeleteElement(true)
     await sleep(1000)
     setIsDeleteElement(false)
     setInputValue('')
-    setTypeOpeation(null)
-    console.log(lastElementArray)
+    setTypeOperation(null)
+  }
+
+
+  const handlerAddByIndex = () => {
+    setCurrentIndex(0)
+    setIsAnimationByIndex(true)
+    setTypeOperation(TypeOperation.ADD_BY_INDEX_SEARCH)
+    list.addByIndex(inputValue, inputIndex)
   }
 
 
@@ -120,17 +167,17 @@ export const ListPage: React.FC = () => {
       return <Circle letter={inputValue} isSmall={true} state={ElementStates.Changing} />
     } else if (index == array.length - 1 && isAnimationTail && typeOperation === TypeOperation.ADD_TAIL) {
       return <Circle letter={inputValue} isSmall={true} state={ElementStates.Changing} />
+    } else if (index == currentIndex && isAnimationByIndex && typeOperation === TypeOperation.ADD_BY_INDEX_SEARCH) {
+      return <Circle letter={inputValue} isSmall={true} state={ElementStates.Changing} />
     } else if (index === 0) {
       return 'head'
     }
   }
 
   const setCircleTail = (index) => {
-    console.log(lastElementArray)
     if (index === 0 && isAnimationHead && typeOperation === TypeOperation.DELETE_HEAD) {
       return <Circle letter={firstElementArray} isSmall={true} state={ElementStates.Changing} />
     } else if (index == array.length - 1 && isAnimationTail && typeOperation === TypeOperation.DELETE_TAIL) {
-      console.log('lastElementArray', lastElementArray)
       return <Circle letter={lastElementArray} isSmall={true} state={ElementStates.Changing} />
     } else if (index === array.length - 1) {
       return 'tail'
@@ -142,6 +189,10 @@ export const ListPage: React.FC = () => {
       return ElementStates.Modified
     } else if (typeOperation === TypeOperation.ADD_TAIL && isNewElement && index === array.length - 1) {
       return ElementStates.Modified
+    } else if (typeOperation === TypeOperation.ADD_BY_INDEX_INSERT && index === currentIndex) {
+      return ElementStates.Modified
+    } else if ((typeOperation === TypeOperation.ADD_BY_INDEX_SEARCH || typeOperation === TypeOperation.ADD_BY_INDEX_INSERT) && index <= currentIndex) {
+      return ElementStates.Changing
     }
   }
 
@@ -155,9 +206,10 @@ export const ListPage: React.FC = () => {
             extraClass={styles.input}
             onChange={handlerInputValue} />
           <Button text="Добавить в head"
-            disabled={loading}
+            disabled={loading || !inputValue}
             extraClass={styles.buttonAdd}
-            onClick={handlerAddHead} />
+            onClick={handlerAddHead}
+          />
           <Button text="Добавить в tail"
             disabled={loading}
             extraClass={styles.buttonDelete}
@@ -173,15 +225,17 @@ export const ListPage: React.FC = () => {
           <Input maxLength={4}
             max={19}
             type="number"
-            value={inputValue}
+            value={inputIndex}
+            disabled={!inputValue}
             extraClass={styles.input}
             onChange={handlerInputInput} />
           <Button text="Добавить по индексу"
-            disabled={loading}
+            disabled={loading || (array && Number(inputIndex) > array.length)}
             extraClass={styles.addByIndex}
+            onClick={handlerAddByIndex}
           />
           <Button text="Удалить по индексу"
-            disabled={loading}
+            disabled={loading || (array && Number(inputIndex) > array.length)}
             extraClass={styles.deleteByIndex}
           />
 
