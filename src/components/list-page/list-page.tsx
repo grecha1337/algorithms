@@ -51,14 +51,14 @@ export const ListPage: React.FC = () => {
       list.appendHead(Math.floor(Math.random() * (100 - 1) + 1))
     }
     setArray(list.toArray())
-  }, [])
+  }, [list])
 
   useEffect(() => {
     if (TypeOperation.ADD_BY_INDEX_SEARCH === typeOperation) {
       interval.current = setInterval(() => {
 
         console.log('currentIndex', currentIndex)
-        if (currentIndex === Number(inputIndex) - 1) {
+        if (currentIndex === Number(inputIndex)) {
           console.log('asdsad')
           setIsNewElement(true)
           setTypeOperation(TypeOperation.ADD_BY_INDEX_INSERT)
@@ -72,13 +72,15 @@ export const ListPage: React.FC = () => {
         return clearInterval(interval.current);
       }
     };
-  }, [interval, typeOperation, currentIndex, inputIndex])
+  }, [interval, typeOperation, currentIndex, inputIndex, list])
 
   useEffect(() => {
     if (TypeOperation.ADD_BY_INDEX_INSERT === typeOperation && isNewElement) {
       setTimeout(() => {
         setIsNewElement(false)
         setTypeOperation(null)
+        setInputIndex('')
+        setInputValue('')
       }, 1000)
     }
 
@@ -186,7 +188,7 @@ export const ListPage: React.FC = () => {
       return ElementStates.Changing
     }
   }
-
+  console.log()
   return (
     <SolutionLayout title="Связный список">
       <div className={styles.wrapperContent}>
@@ -207,15 +209,15 @@ export const ListPage: React.FC = () => {
             onClick={handlerAddHead}
           />
           <Button text="Добавить в tail"
-            disabled={loading}
+            disabled={loading || !inputValue}
             extraClass={styles.buttonDelete}
             onClick={handlerAddTail} />
           <Button text="Удалить из head"
-            disabled={loading}
+            disabled={loading || !array.length}
             extraClass={styles.buttonDelete}
             onClick={handlerDeleteHead} />
           <Button text="Удалить из tail"
-            disabled={loading}
+            disabled={loading || !array.length}
             extraClass={styles.buttonDelete}
             onClick={handlerDeleteTail} />
           <Input maxLength={4}
@@ -237,7 +239,7 @@ export const ListPage: React.FC = () => {
             onClick={handlerAddByIndex}
           />
           <Button text="Удалить по индексу"
-            disabled={loading || (array && Number(inputIndex) > array.length)}
+            disabled={loading || (array && Number(inputIndex) > array.length) || !array.length}
             extraClass={styles.deleteByIndex}
           />
 
@@ -246,16 +248,13 @@ export const ListPage: React.FC = () => {
           {array &&
             array.map((value, index) => {
               return (<Circle
-
                 key={index}
                 letter={value ? value.toString() : ""}
                 head={setCircleHead(index)}
                 tail={setCircleTail(index)}
                 state={setState(index)}
               />
-
               )
-
             })
           }
         </div>
