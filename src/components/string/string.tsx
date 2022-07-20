@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./string.module.css"
 import { Input } from "../ui/input/input";
 import { Button } from "../ui/button/button";
@@ -17,6 +17,29 @@ export const StringComponent: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [algorithmSteps, setAlgorithmSteps] = useState<Array<Array<Character>>>([]);
   const [currentAlgorithmStep, setCurrentAlgorithmStep] = useState(0)
+  const interval = useRef<null | NodeJS.Timeout>(null);
+
+  useEffect(() => {
+    console.log('asd')
+    if (algorithmSteps.length > 0) {
+      interval.current = setInterval(() => {
+        setCurrentAlgorithmStep((currentStep) => {
+          const nextStep = currentStep + 1;
+          if (nextStep >= algorithmSteps.length - 1 && interval.current) {
+            clearInterval(interval.current)
+            setLoading(false)
+          }
+          return nextStep;
+        });
+      }, 1000)
+    }
+
+    return () => {
+      if (interval.current !== null) {
+        return clearInterval(interval.current);
+      }
+    };
+  }, [algorithmSteps, interval])
 
   const getReversingStringSteps = (value: string): Array<Array<Character>> => {
     const result: Array<Array<Character>> = [[]]
@@ -76,18 +99,6 @@ export const StringComponent: React.FC = () => {
     const steps = getReversingStringSteps(value)
     setAlgorithmSteps(steps)
     setCurrentAlgorithmStep(0)
-    if (steps) {
-      const interval = setInterval(() => {
-        setCurrentAlgorithmStep((currentStep) => {
-          const nextStep = currentStep + 1;
-          if (nextStep >= steps.length - 1 && interval) {
-            clearInterval(interval);
-            setLoading(false)
-          }
-          return nextStep;
-        });
-      }, 1000)
-    }
   }
 
   const handlerInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,8 +114,8 @@ export const StringComponent: React.FC = () => {
         <Button text="Развернуть" onClick={handlerButton} isLoader={loading} />
       </div>
       <div className={styles.wrapperCircle}>
-        {algorithmSteps.length > 0 &&
-          algorithmSteps[currentAlgorithmStep].map((items, index) => {
+        {algorithmSteps?.length > 0 &&
+          algorithmSteps[currentAlgorithmStep]?.map((items, index) => {
             return (
               (<Circle letter={items.character} key={index} state={items.state} />)
             );

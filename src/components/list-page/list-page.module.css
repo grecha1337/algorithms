@@ -1,0 +1,32 @@
+.wrapperContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.controlPanel {
+  grid-column-gap: 12px;
+  grid-row-gap: 38px;
+  -webkit-column-gap: 12px;
+  column-gap: 12px;
+  display: grid;
+  grid-template-columns: 204px repeat(4, 1fr);
+  grid-template-rows: 60px 60px;
+  margin: auto auto 90px;
+  max-width: 952px;
+  row-gap: 38px;
+}
+
+.contentList {
+  display: flex;
+  justify-content: center;
+  gap: 0 18px;
+}
+
+.addByIndex {
+  grid-column: span 2;
+}
+
+.deleteByIndex {
+  grid-column: span 2;
+}
