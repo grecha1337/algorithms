@@ -25,12 +25,16 @@ export class Stack<T> implements IStack<T> {
     if (this.isEmpty()) {
       throw new Error("stack is empty");
     }
-    this.top = this.top && this.top.next
+    if (this.top && this.top.next === null) {
+      this.top = null
+    } else {
+      this.top = this.top && this.top.next
+    }
     this.size--
   };
 
   peak = (): T | null => {
-    if (this.isEmpty()) {
+    if (this.isEmpty()) { 
       throw new Error("stack is empty");
     }
     return this.top && this.top.value;

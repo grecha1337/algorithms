@@ -1,0 +1,18 @@
+.wrapperContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.controlPanel {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 120px;
+}
+
+.contentList {
+  display: flex;
+  justify-content: center;
+  gap: 0 18px;
+}

@@ -11,6 +11,7 @@ export class Queue<T> implements IQueue<T> {
   private readonly size: number = 0;
   private length: number = 0;
 
+
   constructor(size: number) {
     this.size = size;
     this.container = Array(size);
@@ -51,9 +52,9 @@ export class Queue<T> implements IQueue<T> {
 
   isEmpty = () => this.length === 0;
 
-  getHead = () => this.head;
+  getHeadIndex = () => this.head;
 
-  getTail = () => this.tail;
+  getTailIndex = () => this.tail;
 
   getLength = () => this.length
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ElementStates } from "../../types/element-states";
 import { Button } from "../ui/button/button";
 import { Circle } from "../ui/circle/circle";
@@ -11,13 +11,36 @@ export const FibonacciPage: React.FC = () => {
   const [value, setValue] = useState('');
   const [loading, setLoading] = useState(false);
   const [algorithmSteps, setAlgorithmSteps] = useState<number[]>([]);
-  const [currentAlgorithmStep, setCurrentAlgorithmStep] = useState(0)
+  const [currentAlgorithmStep, setCurrentAlgorithmStep] = useState(0);
+  const interval = useRef<null | NodeJS.Timeout>(null);
   const handlerInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const min = 1;
     const max = 19;
     const value = Math.max(Number(min), Math.min(Number(max), Number(e.target.value)));
     setValue(value.toString());
   }
+
+  useEffect(() => {
+    interval.current = null;
+    if (algorithmSteps.length > 0) {
+      const interval = setInterval(() => {
+        setCurrentAlgorithmStep((currentStep) => {
+          const nextStep = currentStep + 1;
+          if (nextStep >= algorithmSteps.length - 1 && interval) {
+            clearInterval(interval);
+            setLoading(false)
+          }
+          return nextStep;
+        });
+      }, 500)
+    }
+    return () => {
+      if (interval.current !== null) {
+        return clearInterval(interval.current);
+      }
+    };
+  }, [algorithmSteps, interval])
+
 
   const fibIterative = (n: number): number[] => {
     if (n < 0) return [];
@@ -34,18 +57,6 @@ export const FibonacciPage: React.FC = () => {
     const steps = fibIterative(Number(value))
     setCurrentAlgorithmStep(0)
     setAlgorithmSteps(steps)
-    if (steps) {
-      const interval = setInterval(() => {
-        setCurrentAlgorithmStep((currentStep) => {
-          const nextStep = currentStep + 1;
-          if (nextStep >= steps.length - 1 && interval) {
-            clearInterval(interval);
-            setLoading(false)
-          }
-          return nextStep;
-        });
-      }, 500)
-    }
   }
 
   return (

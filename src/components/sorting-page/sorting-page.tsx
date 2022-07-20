@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Direction } from "../../types/direction";
 import { ElementStates } from "../../types/element-states";
 import { Button } from "../ui/button/button";
@@ -31,7 +31,7 @@ export const SortingPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [array, setArray] = useState<number[]>();
   const [orderBy, setOrderBy] = useState<OrderBy | null>(null);
-
+  const interval = React.useRef<null | NodeJS.Timeout>(null);
   const generationArray = (minValue: number, maxValue: number, minLen: number, maxLenv: number): number[] => {
     const arrLength = Math.floor(Math.random() * (maxLenv - minLen + 1)) + minLen;
     const res = []
@@ -40,6 +40,28 @@ export const SortingPage: React.FC = () => {
     }
     return res;
   }
+
+  useEffect(() => {
+    if (algorithmSteps.length > 0 && currentAlgorithmStep >= 1) {
+      interval.current = setInterval(() => {
+        setCurrentAlgorithmStep((currentStep) => {
+          const nextStep = currentStep + 1;
+          if (nextStep >= algorithmSteps.length - 1 && interval.current) {
+            clearInterval(interval.current);
+            setOrderBy(null)
+            setLoading(false)
+          }
+          return nextStep;
+        });
+      }, 500)
+    }
+
+    return () => {
+      if (interval.current !== null) {
+        return clearInterval(interval.current);
+      }
+    };
+  }, [interval, algorithmSteps, currentAlgorithmStep])
 
   const swap = (arr: any[], firstIndex: number, secondIndex: number): void => {
     const temp = arr[firstIndex];
@@ -142,28 +164,13 @@ export const SortingPage: React.FC = () => {
   const handlerButton = (orderBy: OrderBy = OrderBy.ASC) => {
     if (!array) {
       return;
+
     }
-
     orderBy === OrderBy.ASC ? setOrderBy(OrderBy.ASC) : setOrderBy(OrderBy.DESC)
-
     setLoading(true)
     const steps = active === TypeSort.SELECTION ? selectionSort(array, orderBy) : bubbleSort(array, orderBy);
-    console.log(steps)
     setAlgorithmSteps(steps)
     setCurrentAlgorithmStep(1)
-    if (steps) {
-      const interval = setInterval(() => {
-        setCurrentAlgorithmStep((currentStep) => {
-          const nextStep = currentStep + 1;
-          if (nextStep >= steps.length - 1 && interval) {
-            clearInterval(interval);
-            setOrderBy(null)
-            setLoading(false)
-          }
-          return nextStep;
-        });
-      }, 500)
-    }
   }
 
   const handlerButtonGenArray = () => {
@@ -207,10 +214,10 @@ export const SortingPage: React.FC = () => {
         </div>
         <div className={styles.contentArray}>
           {algorithmSteps.length > 0 &&
-            algorithmSteps[currentAlgorithmStep].map((items, index) => {
+            algorithmSteps[currentAlgorithmStep]?.map((items, index) => {
               return (
                 (<Column index={items.value}
-                  extraClass={items.state == ElementStates.Modified ? styles.sorted : items.state == ElementStates.Changing ? styles.current : ''}
+                  extraClass={items.state === ElementStates.Modified ? styles.sorted : items.state === ElementStates.Changing ? styles.current : ''}
                   key={index} />)
               );
             })
