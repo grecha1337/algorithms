@@ -16,40 +16,38 @@ enum TypeOperation {
 export const StackPage: React.FC = () => {
   const [value, setValue] = useState('');
   const [loading, setLoading] = useState(false);
-  const [stack,] = useState(new Stack<number | null>(new Node(null)))
-  const [array, setArray] = useState<number[]>([])
+  const [stack,] = useState(new Stack<string | null>(new Node(null)))
+  const [array, setArray] = useState<string[]>([])
   const [animation, setAnimation] = useState(false)
   const [typOperation, setTypOperation] = useState<TypeOperation | null>()
-  const interval = React.useRef<null | NodeJS.Timeout>(null);
+  const timeOut = React.useRef<null | NodeJS.Timeout>(null);
   const handlerInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(e.target.value)
+    setValue(e.target.value);
   }
 
   useEffect(() => {
-    interval.current = null;
     if (typOperation === TypeOperation.ADD) {
       setArray(stackToArray(stack))
-      const interval = setInterval(() => {
-        setLoading(false)
-        setAnimation(false)
-        setTypOperation(null)
-        clearInterval(interval);
+      timeOut.current = setTimeout(() => {
+        setLoading(false);
+        setAnimation(false);
+        setTypOperation(null);
       }, 500)
-    } else if (typOperation === TypeOperation.DELETE) {
-      const interval = setInterval(() => {
-        setArray(stackToArray(stack))
-        setLoading(false)
-        setAnimation(false)
-        setTypOperation(null)
-        clearInterval(interval);
+    }
+    if (typOperation === TypeOperation.DELETE) {
+      timeOut.current = setInterval(() => {
+        setArray(stackToArray(stack));
+        setLoading(false);
+        setAnimation(false);
+        setTypOperation(null);
       }, 500)
     }
     return () => {
-      if (interval.current !== null) {
-        return clearInterval(interval.current);
+      if (timeOut.current !== null) {
+        return clearInterval(timeOut.current);
       }
     };
-  }, [stack, interval, typOperation])
+  }, [stack, timeOut, typOperation])
 
 
   const handlerAddElement = () => {
@@ -57,48 +55,48 @@ export const StackPage: React.FC = () => {
       return;
     }
     setTypOperation(TypeOperation.ADD)
-    stack.push(Number(value))
-    setValue('')
-    setLoading(true)
-    setAnimation(true)
+    stack.push(value);
+    setValue('');
+    setLoading(true);
+    setAnimation(true);
   }
 
   const stackToArray = <T extends any>(stack: Stack<T | null>): T[] => {
-    console.log(stack)
     const res: T[] = []
     if (stack.isEmpty()) { return res }
     let node: Node<T | null> | null = stack.getTop();
     let i = 0;
     while (node && node.value) {
-      console.log(node)
+      console.log(node);
       res[i] = node.value;
-      node = node.next
-
+      node = node.next;
       i++;
     }
     return res.reverse();
-
   }
 
   const handlerDelete = () => {
-    setTypOperation(TypeOperation.DELETE)
-    stack.pop()
-    setLoading(true)
-    setAnimation(true)
+    setTypOperation(TypeOperation.DELETE);
+    stack.pop();
+    setLoading(true);
+    setAnimation(true);
   }
 
   const handlerClear = () => {
     stack.clear();
-    setArray(stackToArray(stack))
+    setArray(stackToArray(stack));
   }
 
-  console.log(stack.isEmpty())
-  console.log(stack)
   return (
     <SolutionLayout title="Стек">
       <div className={styles.wrapperContent}>
         <div className={styles.controlPanel}>
-          <Input maxLength={4} isLimitText={true} onChange={handlerInput} value={value} disabled={loading} extraClass={styles.input} />
+          <Input maxLength={4}
+            isLimitText={true}
+            onChange={handlerInput}
+            value={value}
+            disabled={loading}
+            extraClass={styles.input} />
           <Button text="Добавить"
             disabled={loading || !value}
             extraClass={styles.buttonAdd}
@@ -121,7 +119,7 @@ export const StackPage: React.FC = () => {
             array.map((element, index) => {
               return (<Circle letter={element.toString()}
                 key={index}
-                state={index === array.length - 1 && animation ? ElementStates.Modified : ElementStates.Default}
+                state={index === array.length - 1 && animation ? ElementStates.Changing : ElementStates.Default}
                 head={index === array.length - 1 ? "top" : ""}
                 index={index}
               />)

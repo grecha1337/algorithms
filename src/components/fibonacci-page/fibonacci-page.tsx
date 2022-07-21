@@ -5,6 +5,7 @@ import { Circle } from "../ui/circle/circle";
 import { Input } from "../ui/input/input";
 import { SolutionLayout } from "../ui/solution-layout/solution-layout";
 import styles from "./fibonacci.module.css"
+import { fibIterative } from "./utils";
 
 export const FibonacciPage: React.FC = () => {
 
@@ -13,6 +14,7 @@ export const FibonacciPage: React.FC = () => {
   const [algorithmSteps, setAlgorithmSteps] = useState<number[]>([]);
   const [currentAlgorithmStep, setCurrentAlgorithmStep] = useState(0);
   const interval = useRef<null | NodeJS.Timeout>(null);
+
   const handlerInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const min = 1;
     const max = 19;
@@ -22,13 +24,15 @@ export const FibonacciPage: React.FC = () => {
 
   useEffect(() => {
     interval.current = null;
-    if (algorithmSteps.length > 0) {
-      const interval = setInterval(() => {
+    if (
+      algorithmSteps.length > 0
+      && currentAlgorithmStep < algorithmSteps.length - 1
+    ) {
+      interval.current = setInterval(() => {
         setCurrentAlgorithmStep((currentStep) => {
           const nextStep = currentStep + 1;
           if (nextStep >= algorithmSteps.length - 1 && interval) {
-            clearInterval(interval);
-            setLoading(false)
+            setLoading(false);
           }
           return nextStep;
         });
@@ -39,24 +43,13 @@ export const FibonacciPage: React.FC = () => {
         return clearInterval(interval.current);
       }
     };
-  }, [algorithmSteps, interval])
-
-
-  const fibIterative = (n: number): number[] => {
-    if (n < 0) return [];
-
-    let arr: number[] = [1, 1];
-    for (let i = 2; i < n + 1; i++) {
-      arr.push(arr[i - 2] + arr[i - 1])
-    }
-    return arr
-  }
+  }, [algorithmSteps, interval, currentAlgorithmStep])
 
   const handlerButton = () => {
-    setLoading(true)
-    const steps = fibIterative(Number(value))
-    setCurrentAlgorithmStep(0)
-    setAlgorithmSteps(steps)
+    setLoading(true);
+    const steps = fibIterative(Number(value));
+    setCurrentAlgorithmStep(0);
+    setAlgorithmSteps(steps);
   }
 
   return (
@@ -72,9 +65,7 @@ export const FibonacciPage: React.FC = () => {
           {algorithmSteps.length > 0 &&
             algorithmSteps.slice(0, currentAlgorithmStep + 1).map((element, index) => {
               return (
-
                 <Circle letter={element.toString()} key={index} state={ElementStates.Default} index={index} />
-
               );
             })
           }

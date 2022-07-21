@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { LinkedList } from "../../data-structures/linled-list";
 import { ElementStates } from "../../types/element-states";
+import { CircleWithArrow, ElementStatesArrow } from "../circle-with-arrow/circlew-with-arrow";
 import { Button } from "../ui/button/button";
 import { Circle } from "../ui/circle/circle";
 import { Input } from "../ui/input/input";
@@ -19,14 +20,15 @@ enum TypeOperation {
   DELETE_TAIL,
   ADD_BY_INDEX_SEARCH,
   ADD_BY_INDEX_INSERT,
-  DELETE_BY_INDEX,
+  DELETE_BY_INDEX_SEARCH,
+  DELETE_BY_INDEX_REMOVE,
 }
 
 export const ListPage: React.FC = () => {
 
   const [inputValue, setInputValue] = useState('');
   const [inputIndex, setInputIndex] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const interval = React.useRef<null | NodeJS.Timeout>(null);
   const [array, setArray] = useState<(number | null)[]>([]);
   const [list,] = useState(new LinkedList<number>());
@@ -40,32 +42,30 @@ export const ListPage: React.FC = () => {
   const [typeOperation, setTypeOperation] = useState<TypeOperation | null>(null)
 
   const handlerInputValue = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value)
+    setInputValue(e.target.value);
   }
   const handlerInputInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputIndex(e.target.value)
+    setInputIndex(e.target.value);
   }
 
   useEffect(() => {
     for (let i = 0; i < 5; i++) {
-      list.appendHead(Math.floor(Math.random() * (100 - 1) + 1))
+      list.appendHead(Math.floor(Math.random() * (100 - 1) + 1));
     }
-    setArray(list.toArray())
+    setArray(list.toArray());
   }, [list])
 
   useEffect(() => {
     if (TypeOperation.ADD_BY_INDEX_SEARCH === typeOperation) {
+      setIsLoading(true);
       interval.current = setInterval(() => {
-
-        console.log('currentIndex', currentIndex)
         if (currentIndex === Number(inputIndex)) {
-          console.log('asdsad')
-          setIsNewElement(true)
-          setTypeOperation(TypeOperation.ADD_BY_INDEX_INSERT)
-          setArray(list.toArray())
+          setIsNewElement(true);
+          setTypeOperation(TypeOperation.ADD_BY_INDEX_INSERT);
+          setArray(list.toArray());
         }
         setCurrentIndex(prev => prev + 1)
-      }, 500)
+      }, 1000)
     }
     return () => {
       if (interval.current !== null) {
@@ -75,120 +75,262 @@ export const ListPage: React.FC = () => {
   }, [interval, typeOperation, currentIndex, inputIndex, list])
 
   useEffect(() => {
-    if (TypeOperation.ADD_BY_INDEX_INSERT === typeOperation && isNewElement) {
+    if (
+      TypeOperation.ADD_BY_INDEX_INSERT === typeOperation
+      && isNewElement
+    ) {
       setTimeout(() => {
-        setIsNewElement(false)
-        setTypeOperation(null)
-        setInputIndex('')
-        setInputValue('')
+        setIsNewElement(false);
+        setTypeOperation(null);
+        setInputIndex('');
+        setInputValue('');
+        setIsLoading(false);
       }, 1000)
     }
 
   }, [typeOperation, isNewElement])
 
+
+  useEffect(() => {
+    if (TypeOperation.DELETE_BY_INDEX_SEARCH === typeOperation) {
+      setIsLoading(true);
+      interval.current = setInterval(() => {
+        if (currentIndex !== Number(inputIndex)) {
+          setCurrentIndex(prev => prev + 1);
+        }
+      }, 1000)
+    }
+    return () => {
+      if (interval.current !== null) {
+        return clearInterval(interval.current);
+      }
+    };
+  }, [interval, typeOperation, currentIndex, inputIndex, list, array])
+
+  useEffect(() => {
+    if (
+      TypeOperation.DELETE_BY_INDEX_SEARCH === typeOperation
+      && currentIndex === Number(inputIndex)
+    ) {
+      setTimeout(() => {
+        const tmp = [...array];
+        setLastElementArray(tmp[currentIndex]);
+        tmp[currentIndex] = null;
+        setArray([...tmp]);
+        setTypeOperation(TypeOperation.DELETE_BY_INDEX_REMOVE);
+      }, 1000)
+    }
+    if (TypeOperation.DELETE_BY_INDEX_REMOVE === typeOperation) {
+      setTimeout(() => {
+        setArray(list.toArray());
+        setInputIndex('');
+        setInputValue('');
+        setTypeOperation(null);
+        setIsLoading(false);
+      }, 1000)
+    }
+  }, [typeOperation, isNewElement, currentIndex, inputIndex])
+
   const handlerAddHead = async () => {
-    setIsAnimationHead(true)
-    setTypeOperation(TypeOperation.ADD_HEAD)
-    await sleep(600)
-    list.appendHead(Number(inputValue))
-    setIsNewElement(true)
-    setIsAnimationHead(false)
-    setArray(list.toArray())
-    await sleep(600)
-    setIsNewElement(false)
-    setInputValue('')
-    setTypeOperation(null)
+    setIsLoading(true);
+    setIsAnimationHead(true);
+    setTypeOperation(TypeOperation.ADD_HEAD);
+    await sleep(600);
+    list.appendHead(Number(inputValue));
+    setIsNewElement(true);
+    setIsAnimationHead(false);
+    setArray(list.toArray());
+    await sleep(600);
+    setIsNewElement(false);
+    setInputValue('');
+    setTypeOperation(null);
+    setIsLoading(false);
   }
 
 
   const handlerAddTail = async () => {
-    setIsAnimationTail(true)
-    setTypeOperation(TypeOperation.ADD_TAIL)
-    await sleep(600)
-    list.appendTail(Number(inputValue))
-    setIsAnimationTail(false)
-    setIsNewElement(true)
-    setArray(list.toArray())
-    await sleep(600)
-    setIsNewElement(false)
-    setInputValue('')
-    setTypeOperation(null)
+    setIsLoading(true);
+    setIsAnimationTail(true);
+    setTypeOperation(TypeOperation.ADD_TAIL);
+    await sleep(600);
+    list.appendTail(Number(inputValue));
+    setIsAnimationTail(false);
+    setIsNewElement(true);
+    setArray(list.toArray());
+    await sleep(600);
+    setIsNewElement(false);
+    setInputValue('');
+    setTypeOperation(null);
+    setIsLoading(false);
   }
 
   const handlerDeleteHead = async () => {
-    setIsAnimationHead(true)
-    setTypeOperation(TypeOperation.DELETE_HEAD)
-    const tmp = [...array]
-    setFirstElementArray(tmp[0])
+    setIsLoading(true);
+    setIsAnimationHead(true);
+    setTypeOperation(TypeOperation.DELETE_HEAD);
+    const tmp = [...array];
+    setFirstElementArray(tmp[0]);
     tmp[0] = null;
-    setArray(tmp)
-    await sleep(1000)
-    list.deleteHead()
-    setArray(list.toArray())
-    setIsAnimationHead(false)
-    await sleep(1000)
-    setInputValue('')
-    setTypeOperation(null)
+    setArray(tmp);
+    await sleep(1000);
+    list.deleteHead();
+    setArray(list.toArray());
+    setIsAnimationHead(false);
+    await sleep(1000);
+    setInputValue('');
+    setTypeOperation(null);
+    setIsLoading(false);
   }
 
   const handlerDeleteTail = async () => {
-    setIsAnimationTail(true)
-    setTypeOperation(TypeOperation.DELETE_TAIL)
-    const tmp = [...array]
-    setLastElementArray(tmp[tmp.length - 1])
+    setIsLoading(true);
+    setIsAnimationTail(true);
+    setTypeOperation(TypeOperation.DELETE_TAIL);
+    const tmp = [...array];
+    setLastElementArray(tmp[tmp.length - 1]);
     tmp[tmp.length - 1] = null;
-    setArray([...tmp])
-    await sleep(1000)
-    list.deleteTail()
-    setArray(list.toArray())
-    setIsAnimationTail(false)
-    await sleep(1000)
-    setInputValue('')
-    setTypeOperation(null)
+    setArray([...tmp]);
+    await sleep(1000);
+    list.deleteTail();
+    setArray(list.toArray());
+    setIsAnimationTail(false);
+    await sleep(1000);
+    setInputValue('');
+    setTypeOperation(null);
+    setIsLoading(false);
   }
 
 
   const handlerAddByIndex = () => {
-    setCurrentIndex(0)
-    setIsAnimationByIndex(true)
-    setTypeOperation(TypeOperation.ADD_BY_INDEX_SEARCH)
-    list.addByIndex(Number(inputValue), Number(inputIndex))
+    setCurrentIndex(0);
+    setIsAnimationByIndex(true);
+    setTypeOperation(TypeOperation.ADD_BY_INDEX_SEARCH);
+    list.addByIndex(Number(inputValue), Number(inputIndex));
+  }
+
+  const handlerDeleteByIndex = () => {
+    setCurrentIndex(0);
+    setIsAnimationByIndex(true);
+    setTypeOperation(TypeOperation.DELETE_BY_INDEX_SEARCH);
+    list.deleteByIndex(Number(inputIndex));
   }
 
   const setCircleHead = (index: number) => {
-    if (index === 0 && isAnimationHead && typeOperation === TypeOperation.ADD_HEAD) {
+    if (
+      index === 0
+      && isAnimationHead
+      && typeOperation === TypeOperation.ADD_HEAD
+    ) {
       return <Circle letter={inputValue} isSmall={true} state={ElementStates.Changing} />
-    } else if (index === array.length - 1 && isAnimationTail && typeOperation === TypeOperation.ADD_TAIL) {
+    } else if (
+      index === array.length - 1
+      && isAnimationTail
+      && typeOperation === TypeOperation.ADD_TAIL
+    ) {
       return <Circle letter={inputValue} isSmall={true} state={ElementStates.Changing} />
-    } else if (index === currentIndex && isAnimationByIndex && typeOperation === TypeOperation.ADD_BY_INDEX_SEARCH) {
+    } else if (
+      index === currentIndex
+      && isAnimationByIndex
+      && typeOperation === TypeOperation.ADD_BY_INDEX_SEARCH
+    ) {
       return <Circle letter={inputValue} isSmall={true} state={ElementStates.Changing} />
     } else if (index === 0) {
-      return 'head'
+      return 'head';
     }
   }
 
   const setCircleTail = (index: number) => {
-    if (index === 0 && isAnimationHead && typeOperation === TypeOperation.DELETE_HEAD) {
+    if (
+      index === 0
+      && isAnimationHead
+      && typeOperation === TypeOperation.DELETE_HEAD
+    ) {
       return <Circle letter={firstElementArray?.toString()} isSmall={true} state={ElementStates.Changing} />
-    } else if (index === array.length - 1 && isAnimationTail && typeOperation === TypeOperation.DELETE_TAIL) {
+    } else if (
+      index === array.length - 1
+      && isAnimationTail
+      && typeOperation === TypeOperation.DELETE_TAIL
+    ) {
+      return <Circle letter={lastElementArray?.toString()} isSmall={true} state={ElementStates.Changing} />
+    } else if (
+      index === currentIndex
+      && typeOperation === TypeOperation.DELETE_BY_INDEX_REMOVE
+    ) {
       return <Circle letter={lastElementArray?.toString()} isSmall={true} state={ElementStates.Changing} />
     } else if (index === array.length - 1) {
-      return 'tail'
+      return 'tail';
     }
   }
 
   const setState = (index: number) => {
-    if (typeOperation === TypeOperation.ADD_HEAD && isNewElement && index === 0) {
-      return ElementStates.Modified
-    } else if (typeOperation === TypeOperation.ADD_TAIL && isNewElement && index === array.length - 1) {
-      return ElementStates.Modified
-    } else if (typeOperation === TypeOperation.ADD_BY_INDEX_INSERT && index === currentIndex) {
-      return ElementStates.Modified
-    } else if ((typeOperation === TypeOperation.ADD_BY_INDEX_SEARCH || typeOperation === TypeOperation.ADD_BY_INDEX_INSERT) && index <= currentIndex) {
-      return ElementStates.Changing
+    if (
+      typeOperation === TypeOperation.ADD_HEAD
+      && isNewElement
+      && index === 0
+    ) {
+      return ElementStates.Modified;
+    } else if (
+      typeOperation === TypeOperation.ADD_TAIL
+      && isNewElement
+      && index === array.length - 1
+    ) {
+      return ElementStates.Modified;
+    } else if (
+      typeOperation === TypeOperation.ADD_BY_INDEX_INSERT
+      && index === currentIndex
+    ) {
+      return ElementStates.Modified;
+    } else if (
+      (
+        typeOperation === TypeOperation.ADD_BY_INDEX_SEARCH
+        || typeOperation === TypeOperation.ADD_BY_INDEX_INSERT
+      )
+      && index <= currentIndex
+    ) {
+      return ElementStates.Changing;
+    } if (
+      (
+        typeOperation === TypeOperation.DELETE_BY_INDEX_SEARCH
+        || typeOperation === TypeOperation.DELETE_BY_INDEX_REMOVE
+      )
+      && index <= currentIndex
+    ) {
+      return ElementStates.Changing;
     }
   }
-  console.log()
+
+  const setStateArrow = (index: number) => {
+    if (
+      index <= currentIndex
+      && (
+        typeOperation === TypeOperation.ADD_BY_INDEX_SEARCH
+        || typeOperation === TypeOperation.ADD_BY_INDEX_INSERT
+      )
+    ) {
+      return ElementStatesArrow.Changing;
+    } if (
+      index <= currentIndex
+      && (
+        typeOperation === TypeOperation.DELETE_BY_INDEX_SEARCH
+        || typeOperation === TypeOperation.DELETE_BY_INDEX_REMOVE
+      )
+    ) {
+      return ElementStatesArrow.Changing;
+    } else {
+      return ElementStatesArrow.Default;
+    }
+  }
+
+  const isNeedArrow = (index: number, array: any[]) => {
+    if (array.length < 0) {
+      return false;
+    } else if (index === 0) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   return (
     <SolutionLayout title="Связный список">
       <div className={styles.wrapperContent}>
@@ -196,6 +338,7 @@ export const ListPage: React.FC = () => {
           <Input maxLength={4}
             isLimitText={true}
             value={inputValue}
+            disabled={isLoading}
             extraClass={styles.input}
             onChange={handlerInputValue}
             onKeyPress={(event) => {
@@ -204,27 +347,31 @@ export const ListPage: React.FC = () => {
               }
             }} />
           <Button text="Добавить в head"
-            disabled={loading || !inputValue}
+            disabled={isLoading || !inputValue}
             extraClass={styles.buttonAdd}
+            isLoader={typeOperation === TypeOperation.ADD_HEAD}
             onClick={handlerAddHead}
           />
           <Button text="Добавить в tail"
-            disabled={loading || !inputValue}
+            disabled={isLoading || !inputValue}
             extraClass={styles.buttonDelete}
+            isLoader={typeOperation === TypeOperation.ADD_TAIL}
             onClick={handlerAddTail} />
           <Button text="Удалить из head"
-            disabled={loading || !array.length}
+            disabled={isLoading || !array.length}
             extraClass={styles.buttonDelete}
+            isLoader={typeOperation === TypeOperation.DELETE_HEAD}
             onClick={handlerDeleteHead} />
           <Button text="Удалить из tail"
-            disabled={loading || !array.length}
+            disabled={isLoading || !array.length}
             extraClass={styles.buttonDelete}
+            isLoader={typeOperation === TypeOperation.DELETE_TAIL}
             onClick={handlerDeleteTail} />
           <Input maxLength={4}
             max={19}
             type="number"
             value={inputIndex}
-            disabled={!inputValue}
+            disabled={isLoading}
             extraClass={styles.input}
             onChange={handlerInputInput}
             onKeyPress={(event) => {
@@ -234,25 +381,30 @@ export const ListPage: React.FC = () => {
             }}
           />
           <Button text="Добавить по индексу"
-            disabled={loading || (array && Number(inputIndex) > array.length)}
+            disabled={isLoading || (array && Number(inputIndex) > array.length) || (!inputIndex || !inputValue)}
             extraClass={styles.addByIndex}
+            isLoader={typeOperation === TypeOperation.ADD_BY_INDEX_INSERT || typeOperation === TypeOperation.ADD_BY_INDEX_SEARCH}
             onClick={handlerAddByIndex}
           />
           <Button text="Удалить по индексу"
-            disabled={loading || (array && Number(inputIndex) > array.length) || !array.length}
+            disabled={isLoading || (array && Number(inputIndex) > array.length) || !array.length}
             extraClass={styles.deleteByIndex}
+            isLoader={typeOperation === TypeOperation.DELETE_BY_INDEX_REMOVE || typeOperation === TypeOperation.DELETE_BY_INDEX_SEARCH}
+            onClick={handlerDeleteByIndex}
           />
 
         </div>
         <div className={styles.contentList}>
           {array &&
             array.map((value, index) => {
-              return (<Circle
+              return (<CircleWithArrow
                 key={index}
                 letter={value ? value.toString() : ""}
                 head={setCircleHead(index)}
                 tail={setCircleTail(index)}
-                state={setState(index)}
+                stateCircle={setState(index)}
+                stateArrow={setStateArrow(index)}
+                isNeedArrow={!isNeedArrow(index, array)}
               />
               )
             })
