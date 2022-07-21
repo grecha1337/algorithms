@@ -22,12 +22,11 @@ export const FibonacciPage: React.FC = () => {
 
   useEffect(() => {
     interval.current = null;
-    if (algorithmSteps.length > 0) {
-      const interval = setInterval(() => {
+    if (algorithmSteps.length > 0 && currentAlgorithmStep < algorithmSteps.length - 1) {
+      interval.current = setInterval(() => {
         setCurrentAlgorithmStep((currentStep) => {
           const nextStep = currentStep + 1;
           if (nextStep >= algorithmSteps.length - 1 && interval) {
-            clearInterval(interval);
             setLoading(false)
           }
           return nextStep;
@@ -39,7 +38,7 @@ export const FibonacciPage: React.FC = () => {
         return clearInterval(interval.current);
       }
     };
-  }, [algorithmSteps, interval])
+  }, [algorithmSteps, interval, currentAlgorithmStep])
 
 
   const fibIterative = (n: number): number[] => {
@@ -72,9 +71,7 @@ export const FibonacciPage: React.FC = () => {
           {algorithmSteps.length > 0 &&
             algorithmSteps.slice(0, currentAlgorithmStep + 1).map((element, index) => {
               return (
-
                 <Circle letter={element.toString()} key={index} state={ElementStates.Default} index={index} />
-
               );
             })
           }

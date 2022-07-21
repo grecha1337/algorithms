@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { LinkedList } from "../../data-structures/linled-list";
 import { ElementStates } from "../../types/element-states";
+import { CircleWithArrow, ElementStatesArrow } from "../circle-with-arrow/circlew-with-arrow";
 import { Button } from "../ui/button/button";
 import { Circle } from "../ui/circle/circle";
 import { Input } from "../ui/input/input";
@@ -19,7 +20,8 @@ enum TypeOperation {
   DELETE_TAIL,
   ADD_BY_INDEX_SEARCH,
   ADD_BY_INDEX_INSERT,
-  DELETE_BY_INDEX,
+  DELETE_BY_INDEX_SEARCH,
+  DELETE_BY_INDEX_REMOVE,
 }
 
 export const ListPage: React.FC = () => {
@@ -56,8 +58,6 @@ export const ListPage: React.FC = () => {
   useEffect(() => {
     if (TypeOperation.ADD_BY_INDEX_SEARCH === typeOperation) {
       interval.current = setInterval(() => {
-
-        console.log('currentIndex', currentIndex)
         if (currentIndex === Number(inputIndex)) {
           console.log('asdsad')
           setIsNewElement(true)
@@ -85,6 +85,44 @@ export const ListPage: React.FC = () => {
     }
 
   }, [typeOperation, isNewElement])
+
+
+  useEffect(() => {
+    if (TypeOperation.DELETE_BY_INDEX_SEARCH === typeOperation) {
+      interval.current = setInterval(() => {
+        if (currentIndex !== Number(inputIndex)) {
+          setCurrentIndex(prev => prev + 1)
+        }
+      }, 1000)
+    }
+    return () => {
+      if (interval.current !== null) {
+        return clearInterval(interval.current);
+      }
+    };
+  }, [interval, typeOperation, currentIndex, inputIndex, list, array])
+
+  useEffect(() => {
+    console.log(currentIndex)
+    console.log(inputIndex)
+    if (TypeOperation.DELETE_BY_INDEX_SEARCH === typeOperation && currentIndex === Number(inputIndex)) {
+      setTimeout(() => {
+        const tmp = [...array]
+        setLastElementArray(tmp[currentIndex])
+        tmp[currentIndex] = null;
+        setArray([...tmp])
+        setTypeOperation(TypeOperation.DELETE_BY_INDEX_REMOVE)
+      }, 1000)
+    }
+    if (TypeOperation.DELETE_BY_INDEX_REMOVE === typeOperation) {
+      setTimeout(() => {
+        setArray(list.toArray())
+        setInputIndex('')
+        setInputValue('')
+        setTypeOperation(null)
+      }, 1000)
+    }
+  }, [typeOperation, isNewElement, currentIndex, inputIndex])
 
   const handlerAddHead = async () => {
     setIsAnimationHead(true)
@@ -155,6 +193,13 @@ export const ListPage: React.FC = () => {
     list.addByIndex(Number(inputValue), Number(inputIndex))
   }
 
+  const handlerDeleteByIndex = () => {
+    setCurrentIndex(0)
+    setIsAnimationByIndex(true)
+    setTypeOperation(TypeOperation.DELETE_BY_INDEX_SEARCH)
+    list.deleteByIndex(Number(inputIndex))
+  }
+
   const setCircleHead = (index: number) => {
     if (index === 0 && isAnimationHead && typeOperation === TypeOperation.ADD_HEAD) {
       return <Circle letter={inputValue} isSmall={true} state={ElementStates.Changing} />
@@ -172,6 +217,8 @@ export const ListPage: React.FC = () => {
       return <Circle letter={firstElementArray?.toString()} isSmall={true} state={ElementStates.Changing} />
     } else if (index === array.length - 1 && isAnimationTail && typeOperation === TypeOperation.DELETE_TAIL) {
       return <Circle letter={lastElementArray?.toString()} isSmall={true} state={ElementStates.Changing} />
+    } else if (index === currentIndex && typeOperation === TypeOperation.DELETE_BY_INDEX_REMOVE) {
+      return <Circle letter={lastElementArray?.toString()} isSmall={true} state={ElementStates.Changing} />
     } else if (index === array.length - 1) {
       return 'tail'
     }
@@ -186,9 +233,31 @@ export const ListPage: React.FC = () => {
       return ElementStates.Modified
     } else if ((typeOperation === TypeOperation.ADD_BY_INDEX_SEARCH || typeOperation === TypeOperation.ADD_BY_INDEX_INSERT) && index <= currentIndex) {
       return ElementStates.Changing
+    } if ((typeOperation === TypeOperation.DELETE_BY_INDEX_SEARCH || typeOperation === TypeOperation.DELETE_BY_INDEX_REMOVE) && index <= currentIndex) {
+      return ElementStates.Changing
     }
   }
-  console.log()
+
+  const setStateArrow = (index: number) => {
+    if (index <= currentIndex && (typeOperation === TypeOperation.ADD_BY_INDEX_SEARCH || typeOperation === TypeOperation.ADD_BY_INDEX_INSERT)) {
+      return ElementStatesArrow.Changing
+    } if (index <= currentIndex && (typeOperation === TypeOperation.DELETE_BY_INDEX_SEARCH || typeOperation === TypeOperation.DELETE_BY_INDEX_REMOVE)) {
+      return ElementStatesArrow.Changing
+    } else {
+      return ElementStatesArrow.Default
+    }
+  }
+
+  const isNeedArrow = (index: number, array: any[]) => {
+    if (array.length < 0) {
+      return false
+    } else if (index === 0) {
+      return false
+    } else {
+      return true
+    }
+  }
+
   return (
     <SolutionLayout title="Связный список">
       <div className={styles.wrapperContent}>
@@ -196,6 +265,7 @@ export const ListPage: React.FC = () => {
           <Input maxLength={4}
             isLimitText={true}
             value={inputValue}
+            disabled={loading}
             extraClass={styles.input}
             onChange={handlerInputValue}
             onKeyPress={(event) => {
@@ -204,27 +274,27 @@ export const ListPage: React.FC = () => {
               }
             }} />
           <Button text="Добавить в head"
-            disabled={loading || !inputValue}
+            disabled={!!typeOperation || !inputValue}
             extraClass={styles.buttonAdd}
             onClick={handlerAddHead}
           />
           <Button text="Добавить в tail"
-            disabled={loading || !inputValue}
+            disabled={!!typeOperation || !inputValue}
             extraClass={styles.buttonDelete}
             onClick={handlerAddTail} />
           <Button text="Удалить из head"
-            disabled={loading || !array.length}
+            disabled={!!typeOperation || !array.length}
             extraClass={styles.buttonDelete}
             onClick={handlerDeleteHead} />
           <Button text="Удалить из tail"
-            disabled={loading || !array.length}
+            disabled={!!typeOperation || !array.length}
             extraClass={styles.buttonDelete}
             onClick={handlerDeleteTail} />
           <Input maxLength={4}
             max={19}
             type="number"
             value={inputIndex}
-            disabled={!inputValue}
+            disabled={loading}
             extraClass={styles.input}
             onChange={handlerInputInput}
             onKeyPress={(event) => {
@@ -234,25 +304,28 @@ export const ListPage: React.FC = () => {
             }}
           />
           <Button text="Добавить по индексу"
-            disabled={loading || (array && Number(inputIndex) > array.length)}
+            disabled={loading || (array && Number(inputIndex) > array.length) || !inputIndex}
             extraClass={styles.addByIndex}
             onClick={handlerAddByIndex}
           />
           <Button text="Удалить по индексу"
             disabled={loading || (array && Number(inputIndex) > array.length) || !array.length}
             extraClass={styles.deleteByIndex}
+            onClick={handlerDeleteByIndex}
           />
 
         </div>
         <div className={styles.contentList}>
           {array &&
             array.map((value, index) => {
-              return (<Circle
+              return (<CircleWithArrow
                 key={index}
                 letter={value ? value.toString() : ""}
                 head={setCircleHead(index)}
                 tail={setCircleTail(index)}
-                state={setState(index)}
+                stateCircle={setState(index)}
+                stateArrow={setStateArrow(index)}
+                isNeedArrow={!isNeedArrow(index, array)}
               />
               )
             })

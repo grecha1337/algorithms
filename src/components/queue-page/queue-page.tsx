@@ -30,23 +30,22 @@ export const QueuePage: React.FC = () => {
   }
 
   useEffect(() => {
+    console.log('interval')
     interval.current = null;
     if (typOperation === TypeOperation.ADD) {
-      const interval = setInterval(() => {
+      interval.current = setInterval(() => {
         setArray([...queue.getElements()])
         setLoading(false)
         setAnimationTail(false)
         setTypOperation(null)
-        clearInterval(interval);
       }, 500)
     } else if (typOperation === TypeOperation.DELETE) {
-      const interval = setInterval(() => {
+      interval.current = setInterval(() => {
         queue.dequeue()
         setArray([...queue.getElements()])
         setLoading(false)
         setAnimationHead(false)
         setTypOperation(null)
-        clearInterval(interval);
       }, 500)
     }
     return () => {

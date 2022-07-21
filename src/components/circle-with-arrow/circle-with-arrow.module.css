@@ -1,0 +1,6 @@
+.wrapperCircle {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  gap: 25px;
+}
